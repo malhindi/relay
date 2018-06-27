@@ -27,8 +27,9 @@ function recycleNodesInto<T>(prevData: T, nextData: T): T {
 
   // Assign local variables to preserve Flow type refinement.
   const prevArray = Array.isArray(prevData) ? prevData : null;
-  const nextArray = Array.isArray(nextData) ? nextData : null;
+  const nextArray = Array.isArray(nextData) ? [].concat(nextData)  : null;
   if (prevArray && nextArray) {
+    nextData = nextArray;
     canRecycle =
       nextArray.reduce((wasEqual, nextItem, ii) => {
         const prevValue = prevArray[ii];
@@ -41,7 +42,8 @@ function recycleNodesInto<T>(prevData: T, nextData: T): T {
   } else if (!prevArray && !nextArray) {
     // Assign local variables to preserve Flow type refinement.
     const prevObject = prevData;
-    const nextObject = nextData;
+    var nextObject = Object.assign({}, nextData);
+    nextData=nextObject;
     const prevKeys = Object.keys(prevObject);
     const nextKeys = Object.keys(nextObject);
     canRecycle =
@@ -54,7 +56,11 @@ function recycleNodesInto<T>(prevData: T, nextData: T): T {
         return wasEqual && nextObject[key] === prevObject[key];
       }, true) && prevKeys.length === nextKeys.length;
   }
-  return canRecycle ? prevData : nextData;
+  if (canRecycle) {
+    return prevData;
+  }
+  
+    return Object.freeze(nextData);
 }
 
 module.exports = recycleNodesInto;
